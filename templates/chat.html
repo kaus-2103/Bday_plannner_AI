@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Planning Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Party Planning Assistant</h1>
+
+        <h2>Recommended Venues:</h2>
+        <ul>
+            {% for venue in venues %}
+                <li>{{ venue }} <button class="book-venue-btn">Book Venue</button></li>
+            {% endfor %}
+        </ul>
+
+        <div id="chat-container">
+            <div id="chat-box">
+                <div id="conversation">
+                    <!-- Conversation history will appear here -->
+                </div>
+            </div>
+
+            <form id="chat-form">
+                <input type="hidden" id="user_details" name="user_details" value="{{ user_details }}">
+                <input type="hidden" id="preferences" name="preferences" value="{{ preferences }}">
+                <input type="hidden" id="location" name="location" value="{{ location }}">
+                <input type="hidden" id="conversation_history" name="conversation_history" value="">
+
+                <label for="user_input">Your Message:</label>
+                <input type="text" id="user_input" name="user_input" required>
+                <button type="submit">Send</button>
+            </form>
+
+            <button id="change-preferences-btn">Change Preferences</button>
+            <button id="casual-chat-btn">Casual Chat</button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#chat-form').on('submit', function(e) {
+                e.preventDefault();
+
+                let formData = {
+                    user_details: $('#user_details').val(),
+                    preferences: $('#preferences').val(),
+                    location: $('#location').val(),
+                    user_input: $('#user_input').val(),
+                    conversation_history: $('#conversation_history').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/chat',
+                    data: formData,
+                    success: function(response) {
+                        // Update conversation history
+                        $('#conversation').append(`<p>User: ${$('#user_input').val()}</p>`);
+                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
+                        
+                        // Update conversation history in hidden input field
+                        $('#conversation_history').val(response.conversation_history);
+
+                        // Clear user input field
+                        $('#user_input').val('');
+                    }
+                });
+            });
+
+            // Handle "Change Preferences" button click
+            $('#change-preferences-btn').on('click', function() {
+                let formData = {
+                    user_details: $('#user_details').val(),
+                    preferences: $('#preferences').val(),
+                    location: $('#location').val(),
+                    user_input: 'change preferences',
+                    conversation_history: $('#conversation_history').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/chat',
+                    data: formData,
+                    success: function(response) {
+                        $('#conversation').append(`<p>User: Change Preferences</p>`);
+                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
+                    }
+                });
+            });
+
+            // Handle "Casual Chat" button click
+            $('#casual-chat-btn').on('click', function() {
+                let formData = {
+                    user_details: $('#user_details').val(),
+                    preferences: $('#preferences').val(),
+                    location: $('#location').val(),
+                    user_input: 'casual chat',
+                    conversation_history: $('#conversation_history').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/chat',
+                    data: formData,
+                    success: function(response) {
+                        $('#conversation').append(`<p>User: Casual Chat</p>`);
+                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
+                    }
+                });
+            });
+
+            // Handle "Book Venue" button click
+            $('.book-venue-btn').on('click', function() {
+                let formData = {
+                    user_details: $('#user_details').val(),
+                    preferences: $('#preferences').val(),
+                    location: $('#location').val(),
+                    user_input: 'book venue',
+                    conversation_history: $('#conversation_history').val()
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/chat',
+                    data: formData,
+                    success: function(response) {
+                        $('#conversation').append(`<p>User: Book Venue</p>`);
+                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
