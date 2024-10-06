@@ -64,5 +64,5 @@ The DuckDuckGo Search API may sometimes hit rate limits. In case of such issues,
 - Model Loading
 Sometimes Models takes time to load in Hugging Face. 
 
-Live Demo: [BDAY-Party-Planner](kaus2103.pythonanywhere.com)
+Live Demo: https://tinyurl.com/rybxrvf2
 Note: It takes a lot of time to respond for API issues and gives internal server error mostly. 
