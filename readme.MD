@@ -23,43 +23,46 @@ This project is a Flask-based web application that uses an AI agent to assist us
 ### 1. Clone the Repository
 
 ```
-bash
 git clone https://github.com/your-repo/birthday-planner-ai.git
 cd birthday-planner-ai
 ```
 # 2. Install Dependencies
 Make sure you have Python installed, then install the necessary packages using pip:
-
-bash
-Copy code
+```
 pip install -r requirements.txt
-3. Set up Environment Variables
+```
+# 3. Set up Environment Variables
 You will need a .env file with the following environment variables:
 
-makefile
-Copy code
+```
 HUGGINGFACEHUB_API_TOKEN=your_huggingface_api_key
+```
 Get your Hugging Face API key from Hugging Face.
 
-4. Run the Application
+# 4. Run the Application
 Start the Flask application with:
 
-bash
-Copy code
-python app.py
+```
+python -m flask run
+```
 The app will be available at http://127.0.0.1:5000/.
 
-5. Interaction
-Open your browser and navigate to the index page.
-Enter your details, preferences, and location.
-Start chatting with the AI for venue suggestions or other party recommendations.
-Notes
-Rate Limiting
+# 5. Interaction
+- Open your browser and navigate to the index page.
+- Enter your details, preferences, and location.
+- Start chatting with the AI for venue suggestions or other party recommendations.
+- Interactions are hardcoded 
+
+    1. ## More venues to get more venues 
+    2. ## Change preferences to reroute to the index page
+    3. ## Book to get booking of the venues ( Just simple reply now. Will implement web scraping later)
+    4. ## Recommend a venue to get recommendation
+# Notes
+- Rate Limiting
 The DuckDuckGo Search API may sometimes hit rate limits. In case of such issues, the app retries the search after a short delay. If you're facing frequent rate limit issues, consider reducing the number of search results fetched or implementing a caching mechanism for queries.
 
-Customization
-You can easily customize the AI model by swapping out the Hugging Face model or adjusting the prompt template in party_planning_template. Additionally, venue search logic can be tweaked or expanded using other search APIs as needed.
+- Model Loading
+Sometimes Models takes time to load in Hugging Face. 
 
-Known Issues
-Venues are only returned during the initial search or when the user explicitly asks for more venues.
-The application might occasionally return slower responses due to the external APIs being used (Hugging Face or DuckDuckGo).
+Live Demo: [BDAY-Party-Planner](kaus2103.pythonanywhere.com)
+Note: It takes a lot of time to respond for API issues and gives internal server error mostly. 
