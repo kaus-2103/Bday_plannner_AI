@@ -3,4 +3,5 @@ requests==2.26.0
 langchain
 duckduckgo_search
 python-dotenv
-gunicorn
+Werkzeug==2.0.3
+

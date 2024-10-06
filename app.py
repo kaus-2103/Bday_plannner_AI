@@ -71,11 +71,12 @@ def search_venues_on_duckduckgo(location: str, preferences: str) -> List[str]:
     search_query = f"best venues for {preferences} birthday party in {location}"
     retries = 3
     delay = 5 
+    results = None  
 
     for attempt in range(retries):
         try:
-            results = DDGS().text(search_query, max_results=10)  # Retrieve more results (increase max_results)
-            break  # Break out of the loop if the request is successful
+            results = DDGS().text(search_query, max_results=10)
+            break  
         except RatelimitException:
             print(f"Rate limit hit. Retrying in {delay} seconds...")
             time.sleep(delay)  # Wait before retrying

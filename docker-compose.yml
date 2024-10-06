@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  birthday-planner:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - HUGGINGFACEHUB_API_TOKEN=your_huggingface_api_key
+    volumes:
+      - .:/app
+    restart: always
