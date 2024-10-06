@@ -70,7 +70,7 @@ llm = flanLLM()
 def search_venues_on_duckduckgo(location: str, preferences: str) -> List[str]:
     search_query = f"best venues for {preferences} birthday party in {location}"
     retries = 3
-    delay = 5  # Start with a 5-second delay
+    delay = 5 
 
     for attempt in range(retries):
         try:
@@ -165,8 +165,8 @@ def chat():
     # Check if user wants more venues
     elif "more venues" in user_input:
         if current_venue_index < len(venues):
-            venues_display = "\n".join(venues[current_venue_index:current_venue_index + 5])  # Show next 5 venues
-            current_venue_index += 5  # Update the index for next time
+            venues_display = "\n".join(venues[current_venue_index:current_venue_index + 5])  
+            current_venue_index += 5  
             conversation_history += f"User: {user_input}\nAI: Here are more venues:\n{venues_display}\n"
         else:
             venues_display = "No more venues available."
@@ -194,4 +194,4 @@ def chat():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
