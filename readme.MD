@@ -23,8 +23,8 @@ This project is a Flask-based web application that uses an AI agent to assist us
 ### 1. Clone the Repository
 
 ```
-git clone https://github.com/your-repo/birthday-planner-ai.git
-cd birthday-planner-ai
+git clone https://github.com/kaus-2103/Bday_plannner_AI.git
+cd Bday_plannner_AI
 ```
 # 2. Install Dependencies
 Make sure you have Python installed, then install the necessary packages using pip:
