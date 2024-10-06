@@ -23,8 +23,8 @@ This project is a Flask-based web application that uses an AI agent to assist us
 ### 1. Clone the Repository
 
 ```
-git clone https://github.com/your-repo/birthday-planner-ai.git
-cd birthday-planner-ai
+git clone https://github.com/kaus-2103/Bday_plannner_AI.git
+cd Bday_plannner_AI
 ```
 # 2. Install Dependencies
 Make sure you have Python installed, then install the necessary packages using pip:
@@ -64,5 +64,5 @@ The DuckDuckGo Search API may sometimes hit rate limits. In case of such issues,
 - Model Loading
 Sometimes Models takes time to load in Hugging Face. 
 
-Live Demo: [BDAY-Party-Planner](kaus2103.pythonanywhere.com)
+Live Demo: https://tinyurl.com/rybxrvf2
 Note: It takes a lot of time to respond for API issues and gives internal server error mostly. 
