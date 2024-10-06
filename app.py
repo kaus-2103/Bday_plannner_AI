@@ -5,36 +5,33 @@ from flask import Flask, render_template, request, jsonify
 from langchain.prompts import PromptTemplate
 from langchain.llms.base import LLM
 from typing import Optional, List, Dict
-from duckduckgo_search import DDGS  # DuckDuckGo search for finding venues
+from duckduckgo_search import DDGS
 import time
 from duckduckgo_search.exceptions import RatelimitException
 
 load_dotenv()
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Your Hugging Face API token
 HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
-
-# Define the Hugging Face API URL for the google/flan-t5-large model
 API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
 headers = {"Authorization": f"Bearer {HUGGINGFACEHUB_API_TOKEN}"}
 
-# Define a custom LLM class to interact with Hugging Face API
+# Global variables to hold venues and current index
+venues = []
+current_venue_index = 0
+
 class flanLLM(LLM):
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
         payload = {
             "inputs": prompt
         }
-
         response = requests.post(API_URL, headers=headers, json=payload)
         response_json = response.json()
 
         if "error" in response_json:
             raise ValueError(f"Error from Hugging Face API: {response_json['error']}")
 
-        # Check if the response is a list and handle accordingly
         if isinstance(response_json, list) and len(response_json) > 0:
             return response_json[0].get('generated_text', 'No answer found.')
         else:
@@ -48,7 +45,6 @@ class flanLLM(LLM):
     def _llm_type(self) -> str:
         return "flan"
 
-# Define a general prompt template for user interactions
 party_planning_template = """You are an AI assistant helping a user plan a birthday party.
 
 User details: {user_details}
@@ -69,72 +65,70 @@ prompt = PromptTemplate(
     template=party_planning_template,
 )
 
-# Initialize the custom flan LLM
 llm = flanLLM()
 
-# Function to use DuckDuckGo search to find venues based on the user's location
 def search_venues_on_duckduckgo(location: str, preferences: str) -> List[str]:
     search_query = f"best venues for {preferences} birthday party in {location}"
-    try:
-        results = DDGS().text(search_query, max_results=5)
-    except RatelimitException as e:
-        print("Rate limit hit. Retrying after delay...")
-        time.sleep(10)
-        results = DDGS().text(search_query, max_results=5)
+    retries = 3
+    delay = 5  # Start with a 5-second delay
+
+    for attempt in range(retries):
+        try:
+            results = DDGS().text(search_query, max_results=10)  # Retrieve more results (increase max_results)
+            break  # Break out of the loop if the request is successful
+        except RatelimitException:
+            print(f"Rate limit hit. Retrying in {delay} seconds...")
+            time.sleep(delay)  # Wait before retrying
+            delay *= 2  # Exponentially increase the delay
 
     if results:
         return [f"{result['title']}: {result['href']}" for result in results]
     else:
         return ["No venues found."]
 
-# Function to get venue recommendations from the LLM
 def get_recommended_venue(plan: Dict[str, str], venues: List[str], prompt: PromptTemplate, conversation_history: str, user_input: str) -> str:
-    # Add the venues and conversation history to the plan
     plan["venues"] = "\n".join(venues)
     plan["conversation_history"] = conversation_history
     plan["user_input"] = user_input
-
-    # Prepare the prompt for generating a recommendation or continuing the conversation
     formatted_prompt = prompt.format(**plan)
 
-    # Ask the LLM to recommend the best venue and continue the conversation
     response = llm.invoke(formatted_prompt)
     return response
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global venues, current_venue_index
+
     if request.method == 'POST':
         user_details = request.form['user_details']
         preferences = request.form['preferences']
         location = request.form['location']
 
-        # Gather the initial plan details
-        plan = {
-            "user_details": user_details,
-            "preferences": preferences,
-            "location": location
-        }
-
-        # Get the venue search results
+        # Reset venues and current index on new request
         venues = search_venues_on_duckduckgo(location, preferences)
+        current_venue_index = 0  # Reset index to start from the beginning
+
+        # Display the first 5 venues
+        venues_display = "\n".join(venues[:5])
+        current_venue_index = 5  # Update the index after displaying the first set
 
         return render_template('chat.html', 
                                user_details=user_details, 
                                preferences=preferences, 
                                location=location, 
-                               venues=venues)
+                               venues=venues_display)
 
     return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    global venues, current_venue_index
     user_details = request.form['user_details']
     preferences = request.form['preferences']
     location = request.form['location']
-    user_input = request.form['user_input'].lower()  # Convert to lowercase to make command recognition easier
+    user_input = request.form['user_input'].lower()
     conversation_history = request.form['conversation_history']
 
-    # Initialize plan
     plan = {
         "user_details": user_details,
         "preferences": preferences,
@@ -143,20 +137,19 @@ def chat():
 
     # Check for booking requests
     if "book venue" in user_input:
-        # Mock booking process (in a real-world app, you'd handle this differently)
         booking_message = "You have successfully booked the venue!"
         conversation_history += f"User: {user_input}\nAI: {booking_message}\n"
         return jsonify({
             "recommendation": booking_message,
             "conversation_history": conversation_history
         })
-    
+
     # Check for requests to change preferences
     elif "change preferences" in user_input or "start over" in user_input:
-        # Reset the flow and take the user back to the first questions
-        restart_message = "Sure! Let's start over. Who is the party for, and what are your new preferences?"
+        restart_message = "Sure! Let's start over. Redirecting you to the main page..."
         return jsonify({
             "recommendation": restart_message,
+            "redirect": True,  # Indicate that this should trigger a redirect
             "conversation_history": conversation_history
         })
 
@@ -169,13 +162,29 @@ def chat():
             "conversation_history": conversation_history
         })
 
-    # Get venue search results again if needed
-    venues = search_venues_on_duckduckgo(location, preferences)
+    # Check if user wants more venues
+    elif "more venues" in user_input:
+        if current_venue_index < len(venues):
+            venues_display = "\n".join(venues[current_venue_index:current_venue_index + 5])  # Show next 5 venues
+            current_venue_index += 5  # Update the index for next time
+            conversation_history += f"User: {user_input}\nAI: Here are more venues:\n{venues_display}\n"
+        else:
+            venues_display = "No more venues available."
+            conversation_history += f"User: {user_input}\nAI: {venues_display}\n"
 
-    # Get LLM recommendation
-    recommendation = get_recommended_venue(plan, venues, prompt, conversation_history, user_input)
+        return jsonify({
+            "recommendation": f"Here are more venues:\n{venues_display}",
+            "conversation_history": conversation_history
+        })
 
-    # Update the conversation history
+    # Get LLM recommendation without venues unless explicitly asked
+    # Only return venues in the first venue search, or when "more venues" is requested
+    if "venue" in user_input:
+        recommendation = get_recommended_venue(plan, venues, prompt, conversation_history, user_input)
+    else:
+        recommendation = "I'm happy to chat! Ask me anything or let me know if you need more party recommendations."
+
+    # Update conversation history with user input and AI recommendation
     conversation_history += f"User: {user_input}\nAI: {recommendation}\n"
 
     return jsonify({

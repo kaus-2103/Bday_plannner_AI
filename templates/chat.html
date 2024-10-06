@@ -3,134 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Party Planning Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Chat with Party Planner</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        #chat-box {
+            height: 400px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+        }
+        .user-message {
+            text-align: right;
+        }
+        .ai-message {
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Party Planning Assistant</h1>
+        <h1 class="mt-5">Chat with Your Birthday Party Planner</h1>
+        
+        <div id="chat-box" class="border p-3">
+            <!-- Conversation history will be appended here -->
+            <div class="ai-message">
+                <strong>AI:</strong> Here are some venues I found for you:<br>
+                <pre>{{ venues|safe }}</pre>
+            </div>
+        </div>
 
-        <h2>Recommended Venues:</h2>
-        <ul>
-            {% for venue in venues %}
-                <li>{{ venue }} <button class="book-venue-btn">Book Venue</button></li>
-            {% endfor %}
-        </ul>
+        <form id="chat-form" class="mb-4">
+            <input type="hidden" name="user_details" value="{{ user_details }}">
+            <input type="hidden" name="preferences" value="{{ preferences }}">
+            <input type="hidden" name="location" value="{{ location }}">
+            <input type="hidden" name="conversation_history" id="conversation_history">
 
-        <div id="chat-container">
-            <div id="chat-box">
-                <div id="conversation">
-                    <!-- Conversation history will appear here -->
-                </div>
+            <div class="form-group">
+                <label for="user_input">Your message:</label>
+                <input type="text" class="form-control" id="user_input" name="user_input" required placeholder="Ask about venues or chat with the assistant">
             </div>
 
-            <form id="chat-form">
-                <input type="hidden" id="user_details" name="user_details" value="{{ user_details }}">
-                <input type="hidden" id="preferences" name="preferences" value="{{ preferences }}">
-                <input type="hidden" id="location" name="location" value="{{ location }}">
-                <input type="hidden" id="conversation_history" name="conversation_history" value="">
-
-                <label for="user_input">Your Message:</label>
-                <input type="text" id="user_input" name="user_input" required>
-                <button type="submit">Send</button>
-            </form>
-
-            <button id="change-preferences-btn">Change Preferences</button>
-            <button id="casual-chat-btn">Casual Chat</button>
-        </div>
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Keep track of conversation history
+            let conversation_history = '';
+
             $('#chat-form').on('submit', function(e) {
                 e.preventDefault();
 
-                let formData = {
-                    user_details: $('#user_details').val(),
-                    preferences: $('#preferences').val(),
-                    location: $('#location').val(),
-                    user_input: $('#user_input').val(),
-                    conversation_history: $('#conversation_history').val()
-                };
+                let user_input = $('#user_input').val().trim();
+                let formData = $(this).serialize();
+
+                // Add user input to chat box
+                $('#chat-box').append('<div class="user-message"><strong>You:</strong> ' + user_input + '</div>');
+                $('#user_input').val('');  // Clear the input field
 
                 $.ajax({
                     type: 'POST',
                     url: '/chat',
                     data: formData,
                     success: function(response) {
+                        // Add AI response to chat box
+                        $('#chat-box').append('<div class="ai-message"><strong>AI:</strong> ' + response.recommendation + '</div>');
+
+                        // Check if we need to redirect
+                        if (response.redirect) {
+                            // Delay the redirect for user to read the message
+                            setTimeout(function() {
+                                window.location.href = '/';  // Redirect to the homepage (index.html)
+                            }, 2000);  // 2 second delay before redirect
+                        }
+
+                        // Add venues if present
+                        if (response.venues) {
+                            $('#chat-box').append('<div class="ai-message"><strong>AI:</strong> Here are the venues:<br><pre>' + response.venues + '</pre></div>');
+                        }
+
                         // Update conversation history
-                        $('#conversation').append(`<p>User: ${$('#user_input').val()}</p>`);
-                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
-                        
-                        // Update conversation history in hidden input field
-                        $('#conversation_history').val(response.conversation_history);
+                        conversation_history = response.conversation_history;
+                        $('#conversation_history').val(conversation_history);
 
-                        // Clear user input field
-                        $('#user_input').val('');
-                    }
-                });
-            });
-
-            // Handle "Change Preferences" button click
-            $('#change-preferences-btn').on('click', function() {
-                let formData = {
-                    user_details: $('#user_details').val(),
-                    preferences: $('#preferences').val(),
-                    location: $('#location').val(),
-                    user_input: 'change preferences',
-                    conversation_history: $('#conversation_history').val()
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/chat',
-                    data: formData,
-                    success: function(response) {
-                        $('#conversation').append(`<p>User: Change Preferences</p>`);
-                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
-                    }
-                });
-            });
-
-            // Handle "Casual Chat" button click
-            $('#casual-chat-btn').on('click', function() {
-                let formData = {
-                    user_details: $('#user_details').val(),
-                    preferences: $('#preferences').val(),
-                    location: $('#location').val(),
-                    user_input: 'casual chat',
-                    conversation_history: $('#conversation_history').val()
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/chat',
-                    data: formData,
-                    success: function(response) {
-                        $('#conversation').append(`<p>User: Casual Chat</p>`);
-                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
-                    }
-                });
-            });
-
-            // Handle "Book Venue" button click
-            $('.book-venue-btn').on('click', function() {
-                let formData = {
-                    user_details: $('#user_details').val(),
-                    preferences: $('#preferences').val(),
-                    location: $('#location').val(),
-                    user_input: 'book venue',
-                    conversation_history: $('#conversation_history').val()
-                };
-
-                $.ajax({
-                    type: 'POST',
-                    url: '/chat',
-                    data: formData,
-                    success: function(response) {
-                        $('#conversation').append(`<p>User: Book Venue</p>`);
-                        $('#conversation').append(`<p>AI: ${response.recommendation}</p>`);
+                        // Scroll chat box to the bottom
+                        $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
                     }
                 });
             });

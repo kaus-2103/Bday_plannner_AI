@@ -3,24 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Party Planning Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Birthday Party Planner</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>Party Planning Assistant</h1>
+        <h1 class="mt-5">Plan Your Birthday Party</h1>
+        <p>Let us help you find the perfect venue for your birthday party. Fill out the details below to get started.</p>
+        
+        <form action="/" method="POST" class="mt-4">
+            <div class="form-group">
+                <label for="user_details">Who is the party for?</label>
+                <input type="text" class="form-control" id="user_details" name="user_details" required placeholder="e.g., John, 30th Birthday">
+            </div>
 
-        <form method="POST" action="/">
-            <label for="user_details">Who is the party for?</label>
-            <input type="text" id="user_details" name="user_details" required>
+            <div class="form-group">
+                <label for="preferences">What kind of party are you planning?</label>
+                <input type="text" class="form-control" id="preferences" name="preferences" required placeholder="e.g., Outdoor, Dinner Party, Themed Party">
+            </div>
 
-            <label for="preferences">Party Preferences</label>
-            <input type="text" id="preferences" name="preferences" required>
+            <div class="form-group">
+                <label for="location">Where is the party? (City or Zip Code)</label>
+                <input type="text" class="form-control" id="location" name="location" required placeholder="e.g., New York, 10001">
+            </div>
 
-            <label for="location">Location (City or ZIP code)</label>
-            <input type="text" id="location" name="location" required>
-
-            <button type="submit">Submit</button>
+            <button type="submit" class="btn btn-primary">Find Venues</button>
         </form>
     </div>
 </body>
