@@ -58,20 +58,7 @@ The app will be available at http://127.0.0.1:5000/.
     3. ## Book to get booking of the venues ( Just simple reply now. Will implement web scraping later)
     4. ## Recommend a venue to get recommendation
 
-# Birthday Party Planner AI - Dockerized Flask Application
 
-This project is a Flask-based AI assistant for planning birthday parties. The AI helps users choose venues and make other party arrangements. This `README` explains how to use Docker to build, run, and push the image to Docker Hub.
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Docker Setup](#docker-setup)
-  - [Build the Docker Image](#build-the-docker-image)
-  - [Run the Docker Container](#run-the-docker-container)
-  - [Push to Docker Hub](#push-to-docker-hub)
-- [Access the Application](#access-the-application)
-
----
 
 ## Prerequisites
 
